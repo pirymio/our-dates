@@ -42,7 +42,6 @@ export default function App() {
   const [recovery, setRecovery] = useState(
     () => typeof window !== "undefined" && window.location.hash.includes("type=recovery")
   );
-
   const [posts, setPosts] = useState([]);
   const [friendsList, setFriendsList] = useState([]);
   const [friendIds, setFriendIds] = useState(new Set());
@@ -55,6 +54,7 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [people, setPeople] = useState([]);
   const [composer, setComposer] = useState(false);
+  const [editingPost, setEditingPost] = useState(null);
   const [activeChat, setActiveChat] = useState(null); // {id, username}
   const [draft, setDraft] = useState("");
   const [toast, setToast] = useState(null);
@@ -299,10 +299,13 @@ export default function App() {
     setMsgs((m) => [...m, data]);
   };
 
-  const publishPost = async (data, media) => {
+    const publishPost = async (data, media, editId = null) => {
     try {
       let media_type = null, media_url = null;
-      if (media?.type === "link" && media.url) {
+      if (media?.keep) {
+        media_type = media.type;
+        media_url = media.url;
+      } else if (media?.type === "link" && media.url) {
         media_type = "link";
         media_url = media.url;
       } else if (media?.file) {
@@ -312,26 +315,50 @@ export default function App() {
         if (upErr) throw upErr;
         media_type = media.type;
         media_url = supabase.storage.from("media").getPublicUrl(path).data.publicUrl;
+      } else if (media?.type === null) {
+        media_type = null;
+        media_url = null;
       }
-      const { data: row, error } = await supabase
-        .from("posts")
-        .insert({ user_id: profile.id, ...data, media_type, media_url })
-        .select("id,user_id,date,title,comment,visibility,media_type,media_url,created_at")
-        .single();
-      if (error) throw error;
-      setPosts((p) => [{ ...row, username: profile.username }, ...p]);
-      setComposer(false);
-      const tt = parseKey(row.date);
-      const span = range.end - range.start;
-      setRange({ start: tt - span / 2, end: tt + span / 2 });
-      setSelected(row.date);
-      setTab("home");
-      showToast(t.published);
-      return true;
+
+      if (editId) {
+        const { data: row, error } = await supabase
+          .from("posts")
+          .update({ ...data, media_type, media_url })
+          .eq("id", editId)
+          .select("id,user_id,date,title,comment,visibility,media_type,media_url,created_at")
+          .single();
+        if (error) throw error;
+        setPosts((ps) => ps.map((p) => (p.id === editId ? { ...row, username: profile.username } : p)));
+        setEditingPost(null);
+        setComposer(false);
+        showToast(t.edited);
+        return true;
+      } else {
+        const { data: row, error } = await supabase
+          .from("posts")
+          .insert({ user_id: profile.id, ...data, media_type, media_url })
+          .select("id,user_id,date,title,comment,visibility,media_type,media_url,created_at")
+          .single();
+        if (error) throw error;
+        setPosts((p) => [{ ...row, username: profile.username }, ...p]);
+        setComposer(false);
+        const tt = parseKey(row.date);
+        const span = range.end - range.start;
+        setRange({ start: tt - span / 2, end: tt + span / 2 });
+        setSelected(row.date);
+        setTab("home");
+        showToast(t.published);
+        return true;
+      }
     } catch (e) {
       console.error(e);
       return false;
     }
+  };
+
+  const startEdit = (p) => {
+    setEditingPost(p);
+    setComposer(true);
   };
 
   const deletePost = async (p) => {
@@ -535,7 +562,7 @@ export default function App() {
                 {query && searchResults.length > 0 && (
                   <div className="od-sec-label" style={{ padding: "4px 2px 8px" }}>{t.timeline}</div>
                 )}
-                {searchResults.map((p) => <PostCard key={p.id} p={p} meId={profile.id} t={t} lang={lang} />)}
+                {searchResults.map((p) => <PostCard key={p.id} p={p} meId={profile.id} t={t} lang={lang} onDelete={deletePost} onEdit={startEdit} />)}
               </div>
             </>
           )}
@@ -597,8 +624,8 @@ export default function App() {
                 <div className="od-sec-label" style={{ padding: "0 2px 8px" }}>{t.myDates}</div>
                 {myPosts.length === 0 && <div className="od-empty">{t.noDates}</div>}
                 {myPosts.map((p) => (
-                  <PostCard key={p.id} p={p} meId={profile.id} t={t} lang={lang} onDelete={deletePost} />
-                ))}
+  <PostCard key={p.id} p={p} meId={profile.id} t={t} lang={lang} onDelete={deletePost} onEdit={startEdit} />
+))}
                 <button className="od-btn od-logout" onClick={logout}>{t.logout}</button>
               </div>
             </div>
@@ -645,13 +672,13 @@ export default function App() {
               <div className="od-count-badge" style={{ marginBottom: 12 }}>
                 <Icon name="star" size={13} filled /> {t.chose(groups[selected].count)}
               </div>
-              {sheetPrimary.map((p) => <PostCard key={p.id} p={p} meId={profile.id} t={t} lang={lang} />)}
+              {sheetPrimary.map((p) => <PostCard key={p.id} p={p} meId={profile.id} t={t} lang={lang} onDelete={deletePost} onEdit={startEdit} />)}
               {sheetCommunity.length > 0 && (
                 <>
                   {sheetPrimary.length > 0 && (
                     <div className="od-sec-label" style={{ padding: "4px 2px 8px" }}>{t.community}</div>
                   )}
-                  {sheetCommunity.map((p) => <PostCard key={p.id} p={p} meId={profile.id} t={t} lang={lang} />)}
+                  {sheetCommunity.map((p) => <PostCard key={p.id} p={p} meId={profile.id} t={t} lang={lang} onDelete={deletePost} onEdit={startEdit} />)}
                 </>
               )}
             </div>
@@ -673,11 +700,14 @@ export default function App() {
         )}
 
         {composer && (
-          <Composer
-            onClose={() => setComposer(false)} onSave={publishPost}
-            t={t} defaultVisibility={settings.privacy.defaultVisibility}
-          />
-        )}
+  <Composer
+    onClose={() => { setComposer(false); setEditingPost(null); }}
+    onSave={publishPost}
+    t={t}
+    defaultVisibility={settings.privacy.defaultVisibility}
+    post={editingPost}
+  />
+)}
         {toast && <div className="od-toast">{toast}</div>}
       </div>
     </div>
