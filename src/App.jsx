@@ -43,6 +43,8 @@ export default function App() {
     () => typeof window !== "undefined" && window.location.hash.includes("type=recovery")
   );
   const [posts, setPosts] = useState([]);
+  const [reactions, setReactions] = useState([]);
+  const [comments, setComments] = useState([]);
   const [friendsList, setFriendsList] = useState([]);
   const [friendIds, setFriendIds] = useState(new Set());
   const [msgs, setMsgs] = useState([]);
@@ -123,13 +125,13 @@ export default function App() {
     return () => { alive = false; };
   }, [session?.user?.id]);
 
-  /* ---------- Caricamento dati ---------- */
+    /* ---------- Caricamento dati ---------- */
   useEffect(() => {
     if (!supabase || !profile) return;
     let alive = true;
     (async () => {
       const uid = profile.id;
-      const [pRes, fRes, mRes] = await Promise.all([
+      const [pRes, fRes, mRes, rRes, cRes] = await Promise.all([
         supabase
           .from("posts")
           .select("id,user_id,date,title,comment,visibility,media_type,media_url,created_at, author:profiles(username)")
@@ -145,6 +147,8 @@ export default function App() {
           .or(`sender_id.eq.${uid},recipient_id.eq.${uid}`)
           .order("created_at", { ascending: true })
           .limit(2000),
+        supabase.from("reactions").select("post_id,user_id"),
+        supabase.from("comments").select("id,post_id,user_id,content,created_at").order("created_at", { ascending: true }),
       ]);
       if (!alive) return;
 
@@ -158,10 +162,19 @@ export default function App() {
       const ms = mRes.data || [];
       setMsgs(ms);
 
+      setReactions(rRes.data || []);
+      setComments(cRes.data || []);
+
       const nameMap = { [uid]: profile.username };
       fl.forEach((f) => (nameMap[f.id] = f.username));
       ps.forEach((p) => (nameMap[p.user_id] = p.username));
-      const missing = [...new Set(ms.flatMap((m) => [m.sender_id, m.recipient_id]))].filter((i) => !nameMap[i]);
+      (cRes.data || []).forEach((c) => {
+        if (!nameMap[c.user_id]) nameMap[c.user_id] = "?";
+      });
+      const missing = [...new Set([
+        ...ms.flatMap((m) => [m.sender_id, m.recipient_id]),
+        ...(cRes.data || []).map((c) => c.user_id),
+      ])].filter((i) => !nameMap[i] || nameMap[i] === "?");
       if (missing.length) {
         const { data: profs } = await supabase.from("profiles").select("id,username").in("id", missing);
         (profs || []).forEach((p) => (nameMap[p.id] = p.username));
@@ -360,7 +373,39 @@ export default function App() {
     setEditingPost(p);
     setComposer(true);
   };
+  const toggleLike = async (postId, currentlyLiked) => {
+    if (currentlyLiked) {
+      setReactions((prev) => prev.filter((r) => !(r.post_id === postId && r.user_id === profile.id)));
+      await supabase.from("reactions").delete().eq("post_id", postId).eq("user_id", profile.id);
+    } else {
+      setReactions((prev) => [...prev, { post_id: postId, user_id: profile.id }]);
+      await supabase.from("reactions").insert({ post_id: postId, user_id: profile.id });
+    }
+  };
 
+  const addComment = async (postId, content) => {
+    const { data, error } = await supabase
+      .from("comments")
+      .insert({ post_id: postId, user_id: profile.id, content })
+      .select("id,post_id,user_id,content,created_at")
+      .single();
+    if (error) {
+      showToast(t.genericErr);
+      return false;
+    }
+    setComments((prev) => [...prev, data]);
+    setNames((n) => ({ ...n, [profile.id]: profile.username }));
+    showToast(t.commentAdded);
+    return true;
+  };
+
+  const deleteComment = async (c) => {
+    if (!window.confirm(t.delCommentQ)) return;
+    const { error } = await supabase.from("comments").delete().eq("id", c.id);
+    if (!error) {
+      setComments((prev) => prev.filter((x) => x.id !== c.id));
+    }
+  };
     const deletePost = async (p) => {
     if (!window.confirm(t.delPostQ)) return;
     try {
@@ -576,7 +621,23 @@ export default function App() {
                 {query && searchResults.length > 0 && (
                   <div className="od-sec-label" style={{ padding: "4px 2px 8px" }}>{t.timeline}</div>
                 )}
-                {searchResults.map((p) => <PostCard key={p.id} p={p} meId={profile.id} t={t} lang={lang} onDelete={deletePost} onEdit={startEdit} />)}
+                {searchResults.map((p) => (
+  <PostCard
+    key={p.id}
+    p={p}
+    meId={profile.id}
+    t={t}
+    lang={lang}
+    onDelete={deletePost}
+    onEdit={startEdit}
+    reactions={reactions}
+    comments={comments}
+    onToggleLike={toggleLike}
+    onAddComment={addComment}
+    onDeleteComment={deleteComment}
+    names={names}
+  />
+))}
               </div>
             </>
           )}
@@ -638,7 +699,21 @@ export default function App() {
                 <div className="od-sec-label" style={{ padding: "0 2px 8px" }}>{t.myDates}</div>
                 {myPosts.length === 0 && <div className="od-empty">{t.noDates}</div>}
                 {myPosts.map((p) => (
-  <PostCard key={p.id} p={p} meId={profile.id} t={t} lang={lang} onDelete={deletePost} onEdit={startEdit} />
+  <PostCard
+    key={p.id}
+    p={p}
+    meId={profile.id}
+    t={t}
+    lang={lang}
+    onDelete={deletePost}
+    onEdit={startEdit}
+    reactions={reactions}
+    comments={comments}
+    onToggleLike={toggleLike}
+    onAddComment={addComment}
+    onDeleteComment={deleteComment}
+    names={names}
+  />
 ))}
                 <button className="od-btn od-logout" onClick={logout}>{t.logout}</button>
               </div>
@@ -686,13 +761,45 @@ export default function App() {
               <div className="od-count-badge" style={{ marginBottom: 12 }}>
                 <Icon name="star" size={13} filled /> {t.chose(groups[selected].count)}
               </div>
-              {sheetPrimary.map((p) => <PostCard key={p.id} p={p} meId={profile.id} t={t} lang={lang} onDelete={deletePost} onEdit={startEdit} />)}
+              {sheetPrimary.map((p) => (
+  <PostCard
+    key={p.id}
+    p={p}
+    meId={profile.id}
+    t={t}
+    lang={lang}
+    onDelete={deletePost}
+    onEdit={startEdit}
+    reactions={reactions}
+    comments={comments}
+    onToggleLike={toggleLike}
+    onAddComment={addComment}
+    onDeleteComment={deleteComment}
+    names={names}
+  />
+))}
               {sheetCommunity.length > 0 && (
                 <>
                   {sheetPrimary.length > 0 && (
                     <div className="od-sec-label" style={{ padding: "4px 2px 8px" }}>{t.community}</div>
                   )}
-                  {sheetCommunity.map((p) => <PostCard key={p.id} p={p} meId={profile.id} t={t} lang={lang} onDelete={deletePost} onEdit={startEdit} />)}
+                  {sheetCommunity.map((p) => (
+  <PostCard
+    key={p.id}
+    p={p}
+    meId={profile.id}
+    t={t}
+    lang={lang}
+    onDelete={deletePost}
+    onEdit={startEdit}
+    reactions={reactions}
+    comments={comments}
+    onToggleLike={toggleLike}
+    onAddComment={addComment}
+    onDeleteComment={deleteComment}
+    names={names}
+  />
+))}
                 </>
               )}
             </div>
