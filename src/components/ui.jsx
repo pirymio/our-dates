@@ -36,23 +36,33 @@ export function Row({ icon, label, sub, right, onClick, danger }) {
   );
 }
 
-export function PostCard({ p, meId, t, lang, onDelete }) {
+export function PostCard({ p, meId, t, lang, onDelete, onEdit }) {
   const meta = VIS_META[p.visibility] || VIS_META.public;
+  const isMine = p.user_id === meId;
   return (
     <article className="od-card" style={{ borderLeftColor: meta.color }}>
       <div className="od-card-top">
         <Avatar name={p.username} size={32} />
         <div>
-          <div className="od-card-author">{p.user_id === meId ? t.you : p.username}</div>
+          <div className="od-card-author">{isMine ? t.you : p.username}</div>
           <div className="od-card-date">{fmtLong(p.date, lang)}</div>
         </div>
         <span className="od-card-vis" style={{ color: meta.color, background: `${meta.color}1A` }}>
           <Icon name={meta.icon} size={11} /> {t.vis[p.visibility].label}
         </span>
-        {onDelete && p.user_id === meId && (
-          <button className="od-del" onClick={() => onDelete(p)} title={t.delPostQ}>
-            <Icon name="trash" size={15} />
-          </button>
+        {isMine && (
+          <div style={{ display: "flex", gap: 4, marginLeft: "auto" }}>
+            {onEdit && (
+              <button className="od-del" onClick={() => onEdit(p)} title={t.edit}>
+                <Icon name="edit" size={15} />
+              </button>
+            )}
+            {onDelete && (
+              <button className="od-del" onClick={() => onDelete(p)} title={t.delPostQ}>
+                <Icon name="trash" size={15} />
+              </button>
+            )}
+          </div>
         )}
       </div>
       <h3 className="od-display">{p.title}</h3>
