@@ -134,7 +134,7 @@ export default function App() {
       const [pRes, fRes, mRes, rRes, cRes] = await Promise.all([
         supabase
           .from("posts")
-          .select("id,user_id,date,title,comment,visibility,media_type,media_url,created_at, author:profiles(username)")
+          .select("id,user_id,date,title,comment,visibility,media_type,media_url,created_at, author:profiles!posts_user_id_fkey(username)")
           .order("date", { ascending: false })
           .limit(2000),
         supabase
