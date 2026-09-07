@@ -83,6 +83,8 @@ export const STRINGS = {
     whoSee: "Chi può vederla?", publish: "Pubblica", publishing: "Pubblicazione…", cancel: "Annulla",
     published: "La tua data è stata pubblicata ✓",
     delPostQ: "Eliminare questo post?", postDeleted: "Post eliminato",
+    edit: "Modifica", save: "Salva", saving: "Salvataggio…", edited: "Post aggiornato ✓",
+    editDate: "Modifica data", editDateSub: "Cambia titolo, testo, media o visibilità.",
     vis: {
       private: { label: "Privato", hint: "Solo tu puoi vederla" },
       friends: { label: "Amici", hint: "Visibile ai tuoi amici" },
@@ -153,6 +155,8 @@ export const STRINGS = {
     whoSee: "Who can see it?", publish: "Publish", publishing: "Publishing…", cancel: "Cancel",
     published: "Your date has been published ✓",
     delPostQ: "Delete this post?", postDeleted: "Post deleted",
+    edit: "Edit", save: "Save", saving: "Saving…", edited: "Post updated ✓",
+    editDate: "Edit date", editDateSub: "Change title, text, media or visibility.",
     vis: {
       private: { label: "Private", hint: "Only you can see it" },
       friends: { label: "Friends", hint: "Visible to your friends" },
@@ -223,6 +227,8 @@ export const STRINGS = {
     whoSee: "¿Quién puede verla?", publish: "Publicar", publishing: "Publicando…", cancel: "Cancelar",
     published: "Tu fecha ha sido publicada ✓",
     delPostQ: "¿Eliminar esta publicación?", postDeleted: "Publicación eliminada",
+    edit: "Editar", save: "Guardar", saving: "Guardando…", edited: "Publicación actualizada ✓",
+    editDate: "Editar fecha", editDateSub: "Cambia título, texto, media o visibilidad.",
     vis: {
       private: { label: "Privado", hint: "Solo tú puedes verla" },
       friends: { label: "Amigos", hint: "Visible para tus amigos" },
