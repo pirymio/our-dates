@@ -85,6 +85,7 @@ export const STRINGS = {
     delPostQ: "Eliminare questo post?", postDeleted: "Post eliminato",
     edit: "Modifica", save: "Salva", saving: "Salvataggio…", edited: "Post aggiornato ✓",
     editDate: "Modifica data", editDateSub: "Cambia titolo, testo, media o visibilità.",
+    keepMedia: "Mantieni attuale", removeMedia: "Rimuovi media", currentMedia: "Media attuale",
     vis: {
       private: { label: "Privato", hint: "Solo tu puoi vederla" },
       friends: { label: "Amici", hint: "Visibile ai tuoi amici" },
@@ -157,6 +158,7 @@ export const STRINGS = {
     delPostQ: "Delete this post?", postDeleted: "Post deleted",
     edit: "Edit", save: "Save", saving: "Saving…", edited: "Post updated ✓",
     editDate: "Edit date", editDateSub: "Change title, text, media or visibility.",
+    keepMedia: "Keep current", removeMedia: "Remove media", currentMedia: "Current media",
     vis: {
       private: { label: "Private", hint: "Only you can see it" },
       friends: { label: "Friends", hint: "Visible to your friends" },
@@ -229,6 +231,7 @@ export const STRINGS = {
     delPostQ: "¿Eliminar esta publicación?", postDeleted: "Publicación eliminada",
     edit: "Editar", save: "Guardar", saving: "Guardando…", edited: "Publicación actualizada ✓",
     editDate: "Editar fecha", editDateSub: "Cambia título, texto, media o visibilidad.",
+    keepMedia: "Mantener actual", removeMedia: "Quitar media", currentMedia: "Media actual",
     vis: {
       private: { label: "Privado", hint: "Solo tú puedes verla" },
       friends: { label: "Amigos", hint: "Visible para tus amigos" },
