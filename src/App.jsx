@@ -361,12 +361,26 @@ export default function App() {
     setComposer(true);
   };
 
-  const deletePost = async (p) => {
+    const deletePost = async (p) => {
     if (!window.confirm(t.delPostQ)) return;
-    const { error } = await supabase.from("posts").delete().eq("id", p.id);
-    if (!error) {
-      setPosts((ps) => ps.filter((x) => x.id !== p.id));
-      showToast(t.postDeleted);
+    try {
+      // se c'è un file foto/video, prova a cancellarlo dallo storage
+      if (p.media_url && (p.media_type === "photo" || p.media_type === "video")) {
+        try {
+          const path = p.media_url.split("/media/")[1];
+          if (path) await supabase.storage.from("media").remove([path]);
+        } catch (e) {
+          console.warn("Impossibile eliminare il file media:", e);
+        }
+      }
+      const { error } = await supabase.from("posts").delete().eq("id", p.id);
+      if (!error) {
+        setPosts((ps) => ps.filter((x) => x.id !== p.id));
+        showToast(t.postDeleted);
+      }
+    } catch (e) {
+      console.error(e);
+      showToast(t.genericErr);
     }
   };
 
