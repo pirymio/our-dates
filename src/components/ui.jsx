@@ -193,23 +193,34 @@ export function PostCard({
             </div>
           ))}
 
-          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-            <input
+                   <div style={{ marginTop: 10 }}>
+            <textarea
               className="od-input"
-              style={{ flex: 1, padding: "8px 10px", fontSize: 14 }}
+              style={{
+                width: "100%",
+                minHeight: 70,
+                padding: "10px 12px",
+                fontSize: 14,
+                resize: "vertical",
+                boxSizing: "border-box",
+              }}
               placeholder={t.writeComment}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !busy && handleAdd()}
               disabled={busy}
             />
             <button
               className="od-btn od-btn-primary"
-              style={{ padding: "8px 14px" }}
+              style={{
+                width: "100%",
+                marginTop: 8,
+                padding: "10px",
+                fontSize: 14,
+              }}
               onClick={handleAdd}
               disabled={busy || !draft.trim()}
             >
-              →
+              {t.comment}
             </button>
           </div>
         </div>
