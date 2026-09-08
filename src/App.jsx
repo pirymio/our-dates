@@ -183,7 +183,7 @@ export default function App() {
       if (alive) setNames(nameMap);
     })();
     return () => { alive = false; };
-  }, [profile?.id]);  
+  }, [profile?.id]);
 
   /* ---------- Chat in tempo reale ---------- */
   useEffect(() => {
