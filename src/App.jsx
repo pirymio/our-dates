@@ -49,9 +49,8 @@ export default function App() {
   const [friendIds, setFriendIds] = useState(new Set());
   const [msgs, setMsgs] = useState([]);
   const [names, setNames] = useState({});
-    const [reactions, setReactions] = useState([]);
+  const [reactions, setReactions] = useState([]);
   const [comments, setComments] = useState([]);
-
   const [tab, setTab] = useState("home");
   const [range, setRange] = useState(() => ({ start: Date.now() - 6 * 365 * DAY, end: Date.now() + 365 * DAY }));
   const [selected, setSelected] = useState(null);
