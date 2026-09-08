@@ -375,6 +375,39 @@ export default function App() {
     setEditingPost(p);
     setComposer(true);
   };
+    const toggleLike = async (postId, currentlyLiked) => {
+    if (currentlyLiked) {
+      setReactions((prev) => prev.filter((r) => !(r.post_id === postId && r.user_id === profile.id)));
+      await supabase.from("reactions").delete().eq("post_id", postId).eq("user_id", profile.id);
+    } else {
+      setReactions((prev) => [...prev, { post_id: postId, user_id: profile.id }]);
+      await supabase.from("reactions").insert({ post_id: postId, user_id: profile.id });
+    }
+  };
+
+  const addComment = async (postId, content) => {
+    const { data, error } = await supabase
+      .from("comments")
+      .insert({ post_id: postId, user_id: profile.id, content })
+      .select("id,post_id,user_id,content,created_at")
+      .single();
+    if (error) {
+      showToast(t.genericErr);
+      return false;
+    }
+    setComments((prev) => [...prev, data]);
+    setNames((n) => ({ ...n, [profile.id]: profile.username }));
+    showToast(t.commentAdded);
+    return true;
+  };
+
+  const deleteComment = async (c) => {
+    if (!window.confirm(t.delCommentQ)) return;
+    const { error } = await supabase.from("comments").delete().eq("id", c.id);
+    if (!error) {
+      setComments((prev) => prev.filter((x) => x.id !== c.id));
+    }
+  };
   const toggleLike = async (postId, currentlyLiked) => {
     if (currentlyLiked) {
       setReactions((prev) => prev.filter((r) => !(r.post_id === postId && r.user_id === profile.id)));
