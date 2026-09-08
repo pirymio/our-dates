@@ -369,7 +369,6 @@ export default function App() {
       return false;
     }
   };
-
   const startEdit = (p) => {
     setEditingPost(p);
     setComposer(true);
@@ -383,7 +382,6 @@ export default function App() {
       await supabase.from("reactions").insert({ post_id: postId, user_id: profile.id });
     }
   };
-
   const addComment = async (postId, content) => {
     const { data, error } = await supabase
       .from("comments")
@@ -399,7 +397,6 @@ export default function App() {
     showToast(t.commentAdded);
     return true;
   };
-
   const deleteComment = async (c) => {
     if (!window.confirm(t.delCommentQ)) return;
     const { error } = await supabase.from("comments").delete().eq("id", c.id);
