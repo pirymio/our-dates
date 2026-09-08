@@ -656,7 +656,7 @@ export default function App() {
                 {query && searchResults.length > 0 && (
                   <div className="od-sec-label" style={{ padding: "4px 2px 8px" }}>{t.timeline}</div>
                 )}
-                {searchResults.map((p) => (
+               {searchResults.map((p) => (
   <PostCard
     key={p.id}
     p={p}
@@ -733,7 +733,7 @@ export default function App() {
               <div style={{ padding: "12px 14px 24px" }}>
                 <div className="od-sec-label" style={{ padding: "0 2px 8px" }}>{t.myDates}</div>
                 {myPosts.length === 0 && <div className="od-empty">{t.noDates}</div>}
-               {myPosts.map((p) => (
+              {myPosts.map((p) => (
   <PostCard
     key={p.id}
     p={p}
@@ -796,7 +796,7 @@ export default function App() {
               <div className="od-count-badge" style={{ marginBottom: 12 }}>
                 <Icon name="star" size={13} filled /> {t.chose(groups[selected].count)}
               </div>
-             {sheetPrimary.map((p) => (
+            {sheetPrimary.map((p) => (
   <PostCard
     key={p.id}
     p={p}
