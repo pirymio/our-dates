@@ -98,6 +98,8 @@ export const STRINGS = {
     noComments: "Nessun commento ancora. Sii il primo!",
     delCommentQ: "Eliminare questo commento?",
     commentAdded: "Commento pubblicato",
+    newMsgFrom: (name) => `Nuovo messaggio da ${name}`,
+    newDateFrom: (name) => `${name} ha pubblicato una nuova data`,
     vis: {
       private: { label: "Privato", hint: "Solo tu puoi vederla" },
       friends: { label: "Amici", hint: "Visibile ai tuoi amici" },
@@ -182,6 +184,8 @@ export const STRINGS = {
     noComments: "No comments yet. Be the first!",
     delCommentQ: "Delete this comment?",
     commentAdded: "Comment posted",
+    newMsgFrom: (name) => `New message from ${name}`,
+    newDateFrom: (name) => `${name} published a new date`,
     vis: {
       private: { label: "Private", hint: "Only you can see it" },
       friends: { label: "Friends", hint: "Visible to your friends" },
@@ -266,6 +270,8 @@ export const STRINGS = {
     noComments: "Aún no hay comentarios. ¡Sé el primero!",
     delCommentQ: "¿Eliminar este comentario?",
     commentAdded: "Comentario publicado",
+        newMsgFrom: (name) => `Nuevo mensaje de ${name}`,
+    newDateFrom: (name) => `${name} publicó una nueva fecha`,
     vis: {
       private: { label: "Privado", hint: "Solo tú puedes verla" },
       friends: { label: "Amigos", hint: "Visible para tus amigos" },
