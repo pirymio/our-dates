@@ -183,10 +183,12 @@ export default function App() {
     return () => { alive = false; };
   }, [profile?.id]);
 
-  /* ---------- Chat in tempo reale ---------- */
+  /* ---------- Notifiche in tempo reale (messaggi + post amici) ---------- */
   useEffect(() => {
     if (!supabase || !profile) return;
-    const ch = supabase
+
+    // Messaggi in arrivo
+    const chMsg = supabase
       .channel("od-messages")
       .on(
         "postgres_changes",
@@ -194,17 +196,79 @@ export default function App() {
         async (payload) => {
           const m = payload.new;
           setMsgs((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
-          if (!names[m.sender_id]) {
+
+          // Recupera il nome se non lo conosciamo
+          let senderName = names[m.sender_id];
+          if (!senderName) {
             const { data } = await supabase.from("profiles").select("id,username").eq("id", m.sender_id).maybeSingle();
-            if (data) setNames((n) => ({ ...n, [data.id]: data.username }));
+            if (data) {
+              senderName = data.username;
+              setNames((n) => ({ ...n, [data.id]: data.username }));
+            }
           }
+
+          // Toast solo se non sei già in quella chat e l'opzione è attiva
+          if (
+            settings.notif.messages &&
+            activeChatRef.current?.id !== m.sender_id
+          ) {
+            showToast(t.newMsgFrom(senderName || "…"));
+          }
+
           if (activeChatRef.current?.id === m.sender_id) markRead(m.sender_id);
         }
       )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [profile?.id]);
 
+    // Nuovi post degli amici
+    const chPosts = supabase
+      .channel("od-posts")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "posts" },
+        async (payload) => {
+          const newPost = payload.new;
+
+          // Ignora i tuoi stessi post
+          if (newPost.user_id === profile.id) return;
+
+          // Controlla se è un amico
+          const isFriend = friendIds.has(newPost.user_id);
+          if (!isFriend) return;
+
+          // Aggiungi il post alla timeline
+          let authorName = names[newPost.user_id];
+          if (!authorName) {
+            const { data } = await supabase
+              .from("profiles")
+              .select("id,username")
+              .eq("id", newPost.user_id)
+              .maybeSingle();
+            if (data) {
+              authorName = data.username;
+              setNames((n) => ({ ...n, [data.id]: data.username }));
+            }
+          }
+
+          setPosts((prev) => {
+            if (prev.some((p) => p.id === newPost.id)) return prev;
+            return [{ ...newPost, username: authorName || "?" }, ...prev];
+          });
+
+          // Toast se l'opzione è attiva
+          if (settings.notif.friendDates) {
+            showToast(t.newDateFrom(authorName || "…"));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(chMsg);
+      supabase.removeChannel(chPosts);
+    };
+  }, [profile?.id, friendIds, settings.notif.messages, settings.notif.friendDates]);
+  
   /* ---------- Ricerca persone ---------- */
   useEffect(() => {
     if (!supabase || !profile) return;
