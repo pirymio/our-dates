@@ -18,6 +18,24 @@ export default function SettingsScreen({
         <Row icon="user" label={t.sEditProfile} onClick={soon} />
         <Row icon="key" label={t.sChangePw} onClick={soon} />
         <Row icon="mail" label={t.sEmail} onClick={soon} />
+                <Row icon="users" label={t.sInvite} onClick={async () => {
+          const url = window.location.origin;
+          const text = `${t.inviteText} ${url}`;
+          if (navigator.share) {
+            try {
+              await navigator.share({ title: "Our Dates", text, url });
+            } catch (e) {
+              // utente ha annullato
+            }
+          } else {
+            try {
+              await navigator.clipboard.writeText(text);
+              showToast(t.inviteCopied);
+            } catch {
+              showToast(text);
+            }
+          }
+        }} />
       </div>
 
       <div className="od-sec-label">{t.sNotif}</div>
