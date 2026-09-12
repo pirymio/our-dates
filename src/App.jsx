@@ -51,7 +51,12 @@ export default function App() {
   const [comments, setComments] = useState([]);
 
   const [tab, setTab] = useState("home");
-  const [range, setRange] = useState(() => ({ start: Date.now() - 6 * 365 * DAY, end: Date.now() + 365 * DAY }));
+  const [range, setRange] = useState(() => {
+  const now = Date.now();
+  const span = 35 * DAY; // circa 1 mese
+  // Oggi vicino in alto: 85% del tempo nel passato, 15% nel futuro
+  return { start: now - span * 0.85, end: now + span * 0.15 };
+});
   const [selected, setSelected] = useState(null);
   const [query, setQuery] = useState("");
   const [people, setPeople] = useState([]);
