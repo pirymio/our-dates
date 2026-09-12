@@ -161,14 +161,23 @@ export default function VerticalTimeline({ range, setRange, groups, selected, on
           </React.Fragment>
         );
       })}
-      <div className="od-zoom-col">
-        <button className="od-zoom" onClick={() => zoomAt(1 / 1.6, midY())}><Icon name="plus" size={17} /></button>
-        <button className="od-zoom" onClick={() => zoomAt(1.6, midY())}>−</button>
-        <button className="od-zoom od-today-btn" onClick={() => {
-  const now = Date.now();
-  const s = Math.max(span, 20 * DAY); // non zoomare troppo stretto
-  setRange({ start: now - s * 0.85, end: now + s * 0.15 });
-}}>{t.today}</button>
+            <div className="od-zoom-col" onPointerDown={(e) => e.stopPropagation()}>
+        <button className="od-zoom" onClick={() => zoomAt(1 / 1.6, midY())}>
+          <Icon name="plus" size={17} />
+        </button>
+        <button className="od-zoom" onClick={() => zoomAt(1.6, midY())}>
+          −
+        </button>
+        <button
+          className="od-zoom od-today-btn"
+          onClick={() => {
+            const now = Date.now();
+            const s = Math.max(span, 20 * DAY);
+            setRange({ start: now - s * 0.85, end: now + s * 0.15 });
+          }}
+        >
+          {t.today}
+        </button>
       </div>
       <div className="od-hint">{t.hint}</div>
     </div>
