@@ -171,7 +171,7 @@ export function PostCard({
           {postComments.map((c) => (
             <div key={c.id} style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "flex-start" }}>
               <Avatar name={names[c.user_id] || "?"} size={28} />
-              <div style={{ flex: 1, background: "var(--od-card, #f3f4f6)", borderRadius: 10, padding: "8px 10px" }}>
+             <div style={{ flex: 1, background: "var(--bg)", borderRadius: 10, padding: "8px 10px", color: "var(--ink)" }}>
                 <div style={{ fontSize: 13, fontWeight: 600 }}>
                   {c.user_id === meId ? t.you : names[c.user_id] || "…"}
                   <span style={{ fontWeight: 400, opacity: 0.6, marginLeft: 6, fontSize: 12 }}>
